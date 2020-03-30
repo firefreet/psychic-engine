@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="theme-color" content="#317EFB">
-  <link rel="shortcut icon" href="icons/icon-192x192.png" type="image/x-icon">
+  <link rel="shortcut icon" href="dist/icon_192x192.6105a9f630ae59cc8bc861f52c61b3ba.png" type="image/x-icon">
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="styles.css">
 
-  <link rel="manifest" href="./dist/manifest.99990f3d1d055f9ba94b9e8cb4950669.json">
+  <link rel="manifest" href="./dist/manifest.d02ef8aca4dce23fa3047b7e384e35ef.json">
 
   <title>Budget Tracker</title>
 </head>
@@ -45,5 +45,20 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
   <script src="./dist/app.bundle.js"></script>
+  <script type="text/javascript">
+    (function() {
+      if("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js", {
+          scope: "/"
+        })
+          .then((res) => {
+            console.log(res);
+            console.log("Service Worker registered successfully.");
+          })
+          .catch(error => console.log("Service Worker registration failed:", error));
+      }
+    })();
+  </script>
+
 </body>
 </html>
