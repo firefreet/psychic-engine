@@ -1,5 +1,8 @@
 let transactions = [];
 let myChart;
+let nameEl = document.querySelector("#t-name");
+let amountEl = document.querySelector("#t-amount");
+let errorEl = document.querySelector(".form .error");
 
 fetch("/api/transaction")
   .then(response => {
@@ -79,9 +82,6 @@ function populateChart() {
 }
 
 function sendTransaction(isAdding) {
-  let nameEl = document.querySelector("#t-name");
-  let amountEl = document.querySelector("#t-amount");
-  let errorEl = document.querySelector(".form .error");
 
   // validate form
   if (nameEl.value === "" || amountEl.value === "") {
@@ -104,10 +104,14 @@ function sendTransaction(isAdding) {
     transaction.value *= -1;
   }
 
-  // add to beginning of current array of data
+  apply(transaction);
+}
+
+function apply(transaction){
+      // add to beginning of current array of data
   transactions.unshift(transaction);
 
-  // re-run logic to populate ui with new record
+      // re-run logic to populate ui with new record
   populateChart();
   populateTable();
   populateTotal();
@@ -151,3 +155,79 @@ document.querySelector("#add-btn").onclick = function() {
 document.querySelector("#sub-btn").onclick = function() {
   sendTransaction(false);
 };
+
+document.getElementById('clear-btn').onclick = zeroDB;
+
+
+let db;
+// create a new db request for a "budget" database.
+const request = indexedDB.open("budget",1)
+
+request.onupgradeneeded = function(event) {
+  // create object store called "pending" and set autoIncrement to true
+  db = event.target.result;
+  const objectStore = db.createObjectStore('pending',{autoIncrement: true});
+};
+
+request.onsuccess = function(event) {
+  db = event.target.result;
+
+  if (navigator.onLine) {
+    checkDatabase();
+  }
+};
+
+request.onerror = function(event) {
+  // log error here
+  console.log(event);
+};
+
+function saveRecord(record) {
+  // create a transaction on the pending db with readwrite access
+  const pendingTransaction = db.transaction(['pending'],"readwrite");
+  // access your pending object store
+  const pendingTransactionStore = pendingTransaction.objectStore('pending');
+  // add record to your store with add method.
+  pendingTransactionStore.add(record);
+}
+
+function checkDatabase() {
+  // open a transaction on your pending db
+  const pendingTransaction = db.transaction(['pending'],"readwrite");
+  // access your pending object store
+  const pendingTransactionStore = pendingTransaction.objectStore('pending')
+  // get all records from store and set to a variable
+  const getAll = pendingTransactionStore.getAll();
+
+  getAll.onsuccess = function() {
+    if (getAll.result.length > 0) {
+      console.log('beforePost')
+      fetch("/api/transaction/bulk", {
+        method: "POST",
+        body: JSON.stringify(getAll.result),
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json"
+        }
+      })
+      .then(response => response.json())
+      .then(() => {
+          // if successful, open a transaction on your pending db
+          const pendingTransaction = db.transaction(['pending'],"readwrite");
+          // access your pending object store
+          const pendingTransactionStore = pendingTransaction.objectStore('pending')
+          // clear all items in your store
+          pendingTransactionStore.clear();
+      });
+    }
+  };
+}
+function zeroDB(e){
+  e.preventDefault();
+  const balance = -parseInt(document.getElementById('total').textContent);
+  const clearTransaction = {name: "clearBalance", value: balance};
+  apply(clearTransaction);
+}
+
+// listen for app coming back online
+window.addEventListener("online", checkDatabase);

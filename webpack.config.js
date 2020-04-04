@@ -7,7 +7,7 @@ const config = {
   },
   output: {
     path: __dirname + "/public/dist/",
-    filename: "[name].bundle.js"
+    filename: "bundle.js"
   },
   mode: "development",
   plugins: [new WebpackPwaManifest({

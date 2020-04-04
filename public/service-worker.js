@@ -3,7 +3,7 @@ const FILES_TO_CACHE = [
     "/index.html",
     "/styles.css",
   
-    "/dist/app.bundle.js",
+    "/dist/bundle.js",
     "/dist/icon_192x192.6105a9f630ae59cc8bc861f52c61b3ba.png",
     "/dist/icon_512x512.0eaf69c9a74efa29f890600f11a71682.png",
     "/dist/manifest.d02ef8aca4dce23fa3047b7e384e35ef.json",
@@ -12,7 +12,7 @@ const FILES_TO_CACHE = [
     "https://cdn.jsdelivr.net/npm/chart.js@2.8.0"
   ];
   
-  const STATIC_CACHE = "static-cache-v1";
+  const STATIC_CACHE = "static-cache-v2";
   const RUNTIME_CACHE = "runtime-cache";
   
   self.addEventListener("install", event => {
@@ -48,11 +48,9 @@ const FILES_TO_CACHE = [
   });
   
   self.addEventListener("fetch", event => {
-    // non GET requests are not cached and requests to other origins are not cached
+    // non GET requests are not cached
     if (
-      event.request.method !== "GET" ||
-      !event.request.url.startsWith(self.location.origin)
-    ) {
+      event.request.method !== "GET") {
       event.respondWith(fetch(event.request));
       return;
     }
@@ -67,7 +65,8 @@ const FILES_TO_CACHE = [
               cache.put(event.request, response.clone());
               return response;
             })
-            .catch(() => caches.match(event.request));
+            .catch(() => {
+             return caches.match(event.request)});
         })
       );
       return;
@@ -81,7 +80,7 @@ const FILES_TO_CACHE = [
         }
   
         // request is not in cache. make network request and cache the response
-        return caches.open(RUNTIME_CACHE).then(cache => {
+        return caches.open(STATIC_CACHE).then(cache => {
           return fetch(event.request).then(response => {
             return cache.put(event.request, response.clone()).then(() => {
               return response;
