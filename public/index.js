@@ -225,7 +225,11 @@ function checkDatabase() {
 function zeroDB(e){
   e.preventDefault();
   const balance = -parseInt(document.getElementById('total').textContent);
-  const clearTransaction = {name: "clearBalance", value: balance};
+  const clearTransaction = {
+    name: "clearBalance", 
+    value: balance,
+    date: new Date().toISOString()
+  };
   apply(clearTransaction);
 }
 
